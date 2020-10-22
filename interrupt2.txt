@@ -1,0 +1,63 @@
+#include <tiny13a.h>
+#include <delay.h>
+ 
+#define R_channel PORTB.2 //Определяем канал OCR1AL для Красного цвета
+#define G_channel PORTB.1 //Определяем канал OCR1BL для Зеленого цвета
+#define B_channel PORTB.0   //Определяем канал OCR2 для Синего цвета
+ 
+#define RGB_pause 2000 //Пауза для задержки
+ 
+//Программа формирования задержки
+void pause (unsigned int a)
+{
+unsigned int i; //Переменная для задержки
+for (i=a;i>0;i--); //Цикл формирования задержки
+}
+ 
+//Программа инициализации ШИМ
+void init_pwm (void)
+{
+//Инициализация порта
+DDRB=0x07; //OC1A,OC1B,OC2 - выхода
+
+TIM0_OVF = 0x80; // Int T1 Overflow enabled  
+TCCR1A=(1<<TIM0_COMPA)|(1<<<TIM0_COMPB)|(1<<WDT); //Конфигурация счетчика OC1A
+TCCR1B=(1<<CS10); //Конфигурация счетчика OC1B
+TCCR2=(1<<CS20)|(1<<<TIM0_COMPB)|(1<<TIM0_COMPA); //Конфигурация счетчика OC2
+ 
+//Установка начальных значений счетчиков
+PORTB.2=0xff; //Соответсвует Красному цвету
+PORTB.1=0x00; //Выключен 0
+PORTB.0=0x00;   //Выключен 0
+}
+ 
+//Основная программа
+void main(void)
+{
+unsigned char i;
+ 
+init_pwm(); //Инициализация ШИМ каналов
+ 
+while (1) //Вечный цикл
+{ 
+for(i=0;i<255;i++) //Переход от красного к зеленому
+{
+R_channel--;
+G_channel++;
+pause(RGB_pause);
+}
+for(i=0;i<255;i++) //Переход от зеленого к синему 
+{
+G_channel--;
+B_channel++;
+pause(RGB_pause);
+}
+ 
+for(i=0;i<255;i++)//Переход от синего к красному
+{
+B_channel--;
+R_channel++;
+pause(RGB_pause);
+} 
+}
+}
